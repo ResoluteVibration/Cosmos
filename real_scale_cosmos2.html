@@ -383,7 +383,10 @@
                 planet.name = planetData.name;
                 solarSystemGroup.add(planet);
                 let rings = null;
-                if (planetData.hasRings) { rings = createRings(planetRadius * 1.5, planetRadius * 2.5, planetData.color); planet.add(rings); }
+                if (planetData.hasRings) { 
+                    rings = createRings(planetRadius * 1.5, planetRadius * 2.5, planetData.color); 
+                    planet.add(rings);
+                }
                 return { mesh: planet, orbitRadius, period: planetData.period, rotationPeriod: planetData.rotationPeriod, details: planetData, rings: rings };
             }
             planetsData.forEach(data => planets.push(createOrbitAndPlanet(data)));
@@ -601,9 +604,11 @@
             
             function updateUiForCameraMode() {
                 const isPlanetFocused = planets.some(p => p.mesh === focusedObject);
-                bottomOptionsContainer.classList.toggle('visible', isPlanetFocused);
+                const isMoonFocused = createdMoons.some(m => m.mesh === focusedObject);
+
+                bottomOptionsContainer.classList.toggle('visible', isPlanetFocused || isMoonFocused);
             
-                if (isPlanetFocused) {
+                if (isPlanetFocused || isMoonFocused) {
                     if (cameraMode === 'inside') {
                         viewToggleButton.textContent = 'Switch to Outside View';
                         followButton.style.display = 'none';
@@ -633,6 +638,12 @@
             
             celestialBodies = { 'Galaxy': galaxyParticles };
             const solarSystemBodies = { 'Sun': sun, ...Object.fromEntries(planets.map(p => [p.mesh.name, p.mesh])), 'Asteroid Belt': asteroidBelt.mesh };
+             createdMoons.forEach(moon => {
+                if (moon) { 
+                     solarSystemBodies[moon.mesh.name] = moon.mesh;
+                }
+            });
+
             const blackHoleBodies = {
                 'Black Hole 1': createBlackHole('Black Hole 1', new THREE.Vector3(5000000, 50000, -2000000)),
                 'Black Hole 2': createBlackHole('Black Hole 2', new THREE.Vector3(-4000000, -20000, 3000000)),
@@ -656,9 +667,9 @@
                     cameraMode = 'orbital';
                     
                     let newDistance;
-                    if (object.geometry && object.geometry.parameters && object.geometry.parameters.radius) {
+                     if (object.geometry && object.geometry.parameters && object.geometry.parameters.radius) {
                         const radius = object.geometry.parameters.radius;
-                        const distanceMultiplier = name.includes('Black Hole') ? 25 : 5; // Zoom closer to planets
+                        const distanceMultiplier = name.includes('Black Hole') ? 25 : 5;
                         newDistance = radius * distanceMultiplier;
                     } else {
                         newDistance = name === 'Galaxy' ? 15000000 : 15000;
@@ -686,8 +697,31 @@
             });
             controlsContainer.appendChild(solarSystemButton);
 
-            Object.entries(solarSystemBodies).forEach(([name, object]) => createButton(name, object, solarSystemButtonsContainer, true));
+            const solarSystemBodiesInOrder = [
+                { name: 'Sun', object: sun }
+            ];
+            planetsData.forEach(planetData => {
+                const planetObject = planets.find(p => p.mesh.name === planetData.name);
+                if (planetObject) {
+                    solarSystemBodiesInOrder.push({ name: planetData.name, object: planetObject.mesh });
+                    moonsData.forEach(moonData => {
+                        if (moonData.parent === planetData.name) {
+                            const moonObject = createdMoons.find(m => m.mesh.name === moonData.name);
+                            if (moonObject) {
+                                solarSystemBodiesInOrder.push({ name: moonData.name, object: moonObject.mesh });
+                            }
+                        }
+                    });
+                }
+            });
+            solarSystemBodiesInOrder.push({ name: 'Asteroid Belt', object: asteroidBelt.mesh });
+            
+            solarSystemBodiesInOrder.forEach(body => {
+                createButton(body.name, body.object, solarSystemButtonsContainer, true);
+            });
+            
             Object.entries(blackHoleBodies).forEach(([name, object]) => createButton(name, object, controlsContainer, false));
+
 
             updateButtons(document.querySelector('.planet-button'));
             
@@ -723,8 +757,13 @@
                     const angle = elapsedTime * (2 * Math.PI / planet.period);
                     planet.mesh.position.set(planet.orbitRadius * Math.sin(angle), 0, planet.orbitRadius * Math.cos(angle));
                     planet.mesh.rotation.y = elapsedTime * (2 * Math.PI / planet.rotationPeriod);
+                    
                     if (planet.details.tilt) {
                         planet.mesh.rotation.z = planet.details.tilt;
+                    }
+
+                    if (planet.rings) {
+                        planet.rings.rotation.y += 0.001; 
                     }
                 });
 
@@ -790,3 +829,4 @@
     </script>
 </body>
 </html>
+

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Cosmos - Navigation Hub</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- Basic Setup & Thematic Background --- */
+        :root {
+            --primary-color: #00aaff;
+            --background-color: #050a19;
+            --card-background: #101a35;
+            --text-color: #e0e0e0;
+            --heading-color: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        /* --- Main Content Container --- */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            text-align: center;
+        }
+
+        .main-title {
+            font-size: 3rem;
+            font-weight: 600;
+            color: var(--heading-color);
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px var(--primary-color);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            font-weight: 300;
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* --- Navigation Grid Layout --- */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        /* --- Individual Navigation Cards --- */
+        a.card {
+            background-color: var(--card-background);
+            border-radius: 10px;
+            padding: 25px;
+            text-decoration: none;
+            color: var(--text-color);
+            border: 1px solid #2a3a5c;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        a.card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 25px rgba(0, 170, 255, 0.2);
+            border-color: var(--primary-color);
+        }
+
+        .card h2 {
+            color: var(--heading-color);
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            font-size: 0.95rem;
+            font-weight: 300;
+        }
+
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <h1 class="main-title">Project Cosmos</h1>
+        <p class="subtitle">Welcome to a collection of interactive simulations. Click on any card below to explore a different corner of the universe.</p>
+
+        <nav class="nav-grid">
+            
+            <a href="earth.html" class="card">
+                <h2>Earth Simulation</h2>
+                <p>An interactive model of our home planet.</p>
+            </a>
+            
+            <a href="sun_simulation.html" class="card">
+                <h2>Sun Simulation</h2>
+                <p>A visualization of our solar system's star.</p>
+            </a>
+
+            <a href="solar_system.html" class="card">
+                <h2>Solar System Model 1</h2>
+                <p>Explore the planets orbiting the Sun.</p>
+            </a>
+
+            <a href="solar_system2.html" class="card">
+                <h2>Solar System Model 2</h2>
+                <p>A different perspective of our solar system.</p>
+            </a>
+
+            <a href="planet_simulation.html" class="card">
+                <h2>Planet Simulation</h2>
+                <p>An interactive general planetary model.</p>
+            </a>
+
+            <a href="real_scale_cosmos.html" class="card">
+                <h2>Real Scale Cosmos 1</h2>
+                <p>Grasp the vast scales of the universe.</p>
+            </a>
+
+            <a href="real_scale_cosmos2.html" class="card">
+                <h2>Real Scale Cosmos 2</h2>
+                <p>Another simulation demonstrating cosmic scale.</p>
+            </a>
+
+            <a href="new_galaxy.html" class="card">
+                <h2>Galaxy Visualization</h2>
+                <p>A journey through a newly visualized galaxy.</p>
+            </a>
+
+        </nav>
+    </main>
+
+</body>
+</html>
