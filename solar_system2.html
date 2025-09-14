@@ -234,43 +234,43 @@
             const AU_SCALE = 1000;
             const PLANET_SIZE_SCALE = 20;
             // Updated rotation periods for more visible rotation
-            // Reduced the slow-down factor from 50 to 45 for slightly faster movement
+            // Reduced the slow-down factor from 45 to 44 for slightly faster movement
             const planetsData = [
-                { name: 'Mercury', au: 0.39, radius: 0.38, color: 0x888888, period: 0.24 * 45, rotationPeriod: 5 * 45, description: 'The smallest and innermost planet in the Solar System, orbiting the Sun every 88 Earth days.' },
-                { name: 'Venus', au: 0.72, radius: 0.95, color: 0xaaaaaa, period: 0.62 * 45, rotationPeriod: 7 * 45, description: 'The second planet from the Sun, named after the Roman goddess of love and beauty. It is the hottest planet in our solar system.' },
-                { name: 'Earth', au: 1.0, radius: 1.0, color: 0x00aaff, period: 1.0 * 45, rotationPeriod: 2 * 45, description: 'The third planet from the Sun and the only astronomical object known to harbor life.' },
-                { name: 'Mars', au: 1.52, radius: 0.53, color: 0xff5500, period: 1.88 * 45, rotationPeriod: 3 * 45, description: 'The fourth planet from the Sun and the second-smallest planet in the Solar System. It is often called the "Red Planet".' },
-                { name: 'Jupiter', au: 5.2, radius: 11.2, color: 0xffaa00, period: 11.86 * 45, rotationPeriod: 1 * 45, description: 'The fifth planet from the Sun and the largest in the Solar System. It is a gas giant with a mass more than two and a half times that of all the other planets in the Solar System combined.' },
-                { name: 'Saturn', au: 9.54, radius: 9.45, color: 0xccccaa, period: 29.46 * 45, rotationPeriod: 1 * 45, description: 'The sixth planet from the Sun and the second-largest in the Solar System, known for its extensive ring system.', hasRings: true, tilt: Math.PI / 6 },
-                { name: 'Uranus', au: 19.2, radius: 4.0, color: 0x00ffff, period: 84.01 * 45, rotationPeriod: 4 * 45, description: 'The seventh planet from the Sun. Its most distinguishing feature is its axial tilt, causing it to orbit the Sun on its side.', hasRings: true, tilt: Math.PI / 2 },
-                { name: 'Neptune', au: 30.1, radius: 3.88, color: 0x0000ff, period: 164.79 * 45, rotationPeriod: 4 * 45, description: 'The eighth and farthest-known planet from the Sun. It is the fourth-largest planet by diameter and the third-most massive planet.' },
-                { name: 'Pluto', au: 39.5, radius: 0.18, color: 0x996633, period: 248.0 * 45, rotationPeriod: 8 * 45, description: 'A dwarf planet in the Kuiper Belt, a ring of bodies beyond Neptune. It was the ninth planet from the Sun until 2006.'}
+                { name: 'Mercury', au: 0.39, radius: 0.38, color: 0x888888, period: 0.24 * 44, rotationPeriod: 5 * 44, description: 'The smallest and innermost planet in the Solar System, orbiting the Sun every 88 Earth days.' },
+                { name: 'Venus', au: 0.72, radius: 0.95, color: 0xaaaaaa, period: 0.62 * 44, rotationPeriod: 7 * 44, description: 'The second planet from the Sun, named after the Roman goddess of love and beauty. It is the hottest planet in our solar system.' },
+                { name: 'Earth', au: 1.0, radius: 1.0, color: 0x00aaff, period: 1.0 * 44, rotationPeriod: 2 * 44, description: 'The third planet from the Sun and the only astronomical object known to harbor life.' },
+                { name: 'Mars', au: 1.52, radius: 0.53, color: 0xff5500, period: 1.88 * 44, rotationPeriod: 3 * 44, description: 'The fourth planet from the Sun and the second-smallest planet in the Solar System. It is often called the "Red Planet".' },
+                { name: 'Jupiter', au: 5.2, radius: 11.2, color: 0xffaa00, period: 11.86 * 44, rotationPeriod: 1 * 44, description: 'The fifth planet from the Sun and the largest in the Solar System. It is a gas giant with a mass more than two and a half times that of all the other planets in the Solar System combined.' },
+                { name: 'Saturn', au: 9.54, radius: 9.45, color: 0xccccaa, period: 29.46 * 44, rotationPeriod: 1 * 44, description: 'The sixth planet from the Sun and the second-largest in the Solar System, known for its extensive ring system.', hasRings: true, tilt: Math.PI / 6 },
+                { name: 'Uranus', au: 19.2, radius: 4.0, color: 0x00ffff, period: 84.01 * 44, rotationPeriod: 4 * 44, description: 'The seventh planet from the Sun. Its most distinguishing feature is its axial tilt, causing it to orbit the Sun on its side.', hasRings: true, tilt: Math.PI / 2 },
+                { name: 'Neptune', au: 30.1, radius: 3.88, color: 0x0000ff, period: 164.79 * 44, rotationPeriod: 4 * 44, description: 'The eighth and farthest-known planet from the Sun. It is the fourth-largest planet by diameter and the third-most massive planet.' },
+                { name: 'Pluto', au: 39.5, radius: 0.18, color: 0x996633, period: 248.0 * 44, rotationPeriod: 8 * 44, description: 'A dwarf planet in the Kuiper Belt, a ring of bodies beyond Neptune. It was the ninth planet from the Sun until 2006.'}
             ];
 
             // --- Moon Data ---
             const moonsData = [
-                // Reduced the slow-down factor from 50 to 45 for slightly faster movement
+                // Reduced the slow-down factor from 45 to 44 for slightly faster movement
                 // Earth's Moon
-                { name: 'Moon', parent: 'Earth', radius: 0.27, orbitRadius: 2.5, period: 27.3 * 45, color: 0xcccccc },
+                { name: 'Moon', parent: 'Earth', radius: 0.27, orbitRadius: 2.5, period: 27.3 * 44, color: 0xcccccc },
                 // Mars' Moons
-                { name: 'Phobos', parent: 'Mars', radius: 0.001, orbitRadius: 0.1, period: 0.3 * 45, color: 0x996633 },
-                { name: 'Deimos', parent: 'Mars', radius: 0.001, orbitRadius: 0.15, period: 1.3 * 45, color: 0x996633 },
+                { name: 'Phobos', parent: 'Mars', radius: 0.001, orbitRadius: 0.1, period: 0.3 * 44, color: 0x996633 },
+                { name: 'Deimos', parent: 'Mars', radius: 0.001, orbitRadius: 0.15, period: 1.3 * 44, color: 0x996633 },
                 // Jupiter's Moons
-                { name: 'Io', parent: 'Jupiter', radius: 0.28, orbitRadius: 10, period: 1.8 * 45, color: 0xffa500 },
-                { name: 'Europa', parent: 'Jupiter', radius: 0.25, orbitRadius: 15, period: 3.6 * 45, color: 0xaaaaaa },
-                { name: 'Ganymede', parent: 'Jupiter', radius: 0.41, orbitRadius: 25, period: 7.2 * 45, color: 0xeeeeee },
-                { name: 'Callisto', parent: 'Jupiter', radius: 0.38, orbitRadius: 35, period: 16.7 * 45, color: 0xaaaa99 },
+                { name: 'Io', parent: 'Jupiter', radius: 0.28, orbitRadius: 10, period: 1.8 * 44, color: 0xffa500 },
+                { name: 'Europa', parent: 'Jupiter', radius: 0.25, orbitRadius: 15, period: 3.6 * 44, color: 0xaaaaaa },
+                { name: 'Ganymede', parent: 'Jupiter', radius: 0.41, orbitRadius: 25, period: 7.2 * 44, color: 0xeeeeee },
+                { name: 'Callisto', parent: 'Jupiter', radius: 0.38, orbitRadius: 35, period: 16.7 * 44, color: 0xaaaa99 },
                 // Saturn's Moons
-                { name: 'Titan', parent: 'Saturn', radius: 0.4, orbitRadius: 20, period: 16 * 45, color: 0xdddd99 },
-                { name: 'Rhea', parent: 'Saturn', radius: 0.1, orbitRadius: 10, period: 4.5 * 45, color: 0xcccccc },
-                { name: 'Iapetus', parent: 'Saturn', radius: 0.1, orbitRadius: 30, period: 79 * 45, color: 0x999999 },
+                { name: 'Titan', parent: 'Saturn', radius: 0.4, orbitRadius: 20, period: 16 * 44, color: 0xdddd99 },
+                { name: 'Rhea', parent: 'Saturn', radius: 0.1, orbitRadius: 10, period: 4.5 * 44, color: 0xcccccc },
+                { name: 'Iapetus', parent: 'Saturn', radius: 0.1, orbitRadius: 30, period: 79 * 44, color: 0x999999 },
                 // Uranus' Moons
-                { name: 'Titania', parent: 'Uranus', radius: 0.1, orbitRadius: 5, period: 8.7 * 45, color: 0x00aaff },
-                { name: 'Oberon', parent: 'Uranus', radius: 0.09, orbitRadius: 8, period: 13.5 * 45, color: 0x9999cc },
+                { name: 'Titania', parent: 'Uranus', radius: 0.1, orbitRadius: 5, period: 8.7 * 44, color: 0x00aaff },
+                { name: 'Oberon', parent: 'Uranus', radius: 0.09, orbitRadius: 8, period: 13.5 * 44, color: 0x9999cc },
                 // Neptune's Moon
-                { name: 'Triton', parent: 'Neptune', radius: 0.2, orbitRadius: 5, period: 5.9 * 45, color: 0x0099ff },
+                { name: 'Triton', parent: 'Neptune', radius: 0.2, orbitRadius: 5, period: 5.9 * 44, color: 0x0099ff },
                 // Pluto's Moon (Charon)
-                { name: 'Charon', parent: 'Pluto', radius: 0.1, orbitRadius: 3, period: 6.4 * 45, color: 0x996633 }
+                { name: 'Charon', parent: 'Pluto', radius: 0.1, orbitRadius: 3, period: 6.4 * 44, color: 0x996633 }
             ];
             
             const planets = [];
@@ -440,7 +440,7 @@
             const createdMoons = createMoons(moonsData);
 
             // --- Asteroid Belt Creation ---
-            // Reduced the slow-down factor from 50 to 45 for slightly faster movement
+            // Reduced the slow-down factor from 45 to 44 for slightly faster movement
             function createAsteroidBelt(minRadius, maxRadius, count) {
                 const asteroidGeometry = new THREE.BufferGeometry();
                 const asteroidVertices = [];
@@ -461,7 +461,7 @@
                 asteroidGeometry.setAttribute('position', new THREE.Float32BufferAttribute(asteroidVertices, 3));
                 const asteroids = new THREE.Points(asteroidGeometry, material);
                 scene.add(asteroids);
-                return { mesh: asteroids, period: 5.6 * 45 };
+                return { mesh: asteroids, period: 5.6 * 44 };
             }
 
             const asteroidBelt = createAsteroidBelt(1.52 * AU_SCALE + 20, 5.2 * AU_SCALE - 20, 5000);
@@ -796,6 +796,9 @@
             const animate = function () {
                 requestAnimationFrame(animate);
                 const elapsedTime = clock.getElapsedTime();
+
+                // Rotate the sun
+                sun.rotation.y += 0.0005;
 
                 // Update planet positions and axial rotations
                 planets.forEach((planet, index) => {
