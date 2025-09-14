@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Planet Simulation</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .info-box {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #444;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-box h1 {
+            margin-top: 0;
+            font-size: 1.5em;
+            text-align: center;
+            color: #00ffc8;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+
+        #toggle-view {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            background-color: #00ffc8;
+            color: #000;
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0, 255, 200, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        #toggle-view:hover {
+            background-color: #00e0a8;
+            box-shadow: 0 6px 20px rgba(0, 255, 200, 0.6);
+            transform: translateX(-50%) scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="info-box">
+        <h1>Planet Simulation</h1>
+        <p>Use your mouse to look around.</p>
+        <p>Press the button to toggle between inside and outside views.</p>
+    </div>
+    <canvas id="canvas"></canvas>
+    <button id="toggle-view">Switch to Inside View</button>
+
+    <!-- Three.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        window.onload = function() {
+            // --- Basic Scene Setup ---
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({
+                canvas: document.getElementById('canvas'),
+                antialias: true,
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000);
+            document.body.appendChild(renderer.domElement);
+
+            // --- Planet Creation ---
+            const planetRadius = 50;
+            const segments = 64;
+            const geometry = new THREE.IcosahedronGeometry(planetRadius, 2);
+            const material = new THREE.MeshBasicMaterial({
+                color: 0x00ffc8,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.2
+            });
+            const planet = new THREE.Mesh(geometry, material);
+            scene.add(planet);
+
+            // --- Star Field Creation ---
+            const starGeometry = new THREE.BufferGeometry();
+            const starVertices = [];
+            for (let i = 0; i < 5000; i++) {
+                const x = THREE.MathUtils.randFloatSpread(2000);
+                const y = THREE.MathUtils.randFloatSpread(2000);
+                const z = THREE.MathUtils.randFloatSpread(2000);
+                starVertices.push(x, y, z);
+            }
+            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+            const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 });
+            const stars = new THREE.Points(starGeometry, starMaterial);
+            scene.add(stars);
+
+            // --- Camera Controls ---
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+
+            document.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMousePosition.x = e.clientX;
+                previousMousePosition.y = e.clientY;
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+
+                camera.rotation.y += deltaX * 0.005;
+                camera.rotation.x += deltaY * 0.005;
+                
+                // Clamp vertical rotation to prevent flipping
+                camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+
+                previousMousePosition.x = e.clientX;
+                previousMousePosition.y = e.clientY;
+            });
+            
+            // --- Viewpoint Toggling ---
+            let isInside = false;
+            const toggleButton = document.getElementById('toggle-view');
+
+            toggleButton.addEventListener('click', () => {
+                isInside = !isInside;
+                if (isInside) {
+                    camera.position.set(0, 0, 0); // Move camera to the center
+                    camera.near = 0.1;
+                    camera.far = 1000;
+                    planet.material.side = THREE.BackSide;
+                    toggleButton.textContent = 'Switch to Outside View';
+                } else {
+                    camera.position.set(0, 0, planetRadius * 2); // Move camera outside
+                    camera.near = 0.1;
+                    camera.far = 1000;
+                    planet.material.side = THREE.FrontSide;
+                    toggleButton.textContent = 'Switch to Inside View';
+                }
+                camera.updateProjectionMatrix();
+            });
+
+            // --- Initial Camera Position ---
+            camera.position.set(0, 0, planetRadius * 2);
+            camera.lookAt(0, 0, 0);
+
+            // --- Animation Loop ---
+            const animate = function () {
+                requestAnimationFrame(animate);
+
+                // Planet rotation for a dynamic feel
+                planet.rotation.y += 0.001;
+
+                renderer.render(scene, camera);
+            };
+
+            animate();
+
+            // --- Handle Window Resize ---
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar System Simulation</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .planet-controls {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+            gap: 8px; /* Slightly reduced gap */
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 8px; /* Reduced padding */
+            border-radius: 10px;
+            border: 1px solid #444;
+            z-index: 10;
+            overflow-x: auto; /* Allow horizontal scrolling */
+            max-width: 95%;
+        }
+
+        .planet-button {
+            padding: 6px 12px; /* Reduced padding */
+            font-size: 0.85em; /* Slightly reduced font size */
+            cursor: pointer;
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #555;
+            border-radius: 20px;
+            transition: all 0.2s ease;
+            white-space: nowrap; /* Prevents button text from wrapping */
+        }
+
+        .planet-button.active,
+        .planet-button:hover {
+            background-color: #ffcc00;
+            color: #000;
+            box-shadow: 0 4px 15px rgba(255, 204, 0, 0.4);
+            border-color: #ffcc00;
+        }
+        
+        .options-container {
+            position: absolute;
+            bottom: 60px; /* Adjusted position */
+            left: 50%;
+            /* Hide the container by default */
+            transform: translateX(-50%) translateY(150%);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease;
+            display: flex;
+            flex-direction: row;
+            gap: 8px; /* Reduced gap */
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 8px; /* Reduced padding */
+            border-radius: 10px;
+            border: 1px solid #444;
+            z-index: 10;
+        }
+
+        .options-container.visible {
+            /* Show the container with a smooth transition */
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #camera-options, .follow-modes {
+            display: flex;
+            flex-direction: row;
+            gap: 8px; /* Reduced gap */
+        }
+
+        #view-toggle-button,
+        #follow-button {
+            padding: 8px 15px; /* Reduced padding */
+            font-size: 0.9em; /* Slightly reduced font size */
+            cursor: pointer;
+            border: none;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 204, 0, 0.4);
+        }
+
+        #view-toggle-button {
+            background-color: #ffcc00;
+            color: #000;
+        }
+
+        #view-toggle-button:hover {
+            background-color: #e6b800;
+            box-shadow: 0 6px 20px rgba(255, 204, 0, 0.6);
+        }
+
+        #follow-button {
+            background-color: #00aaff;
+            color: #fff;
+        }
+        
+        #follow-button:hover {
+            background-color: #0088cc;
+            box-shadow: 0 6px 20px rgba(0, 170, 255, 0.6);
+        }
+
+        .follow-modes {
+            display: none;
+            gap: 8px; /* Reduced gap */
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 8px; /* Reduced padding */
+            border-radius: 10px;
+            border: 1px solid #444;
+        }
+
+        .follow-modes button {
+            padding: 6px 12px; /* Reduced padding */
+            font-size: 0.85em; /* Slightly reduced font size */
+            cursor: pointer;
+            background-color: #555;
+            color: #fff;
+            border: 1px solid #777;
+            border-radius: 20px;
+            transition: all 0.2s ease;
+        }
+        
+        .follow-modes button.active,
+        .follow-modes button:hover {
+            background-color: #00aaff;
+            box-shadow: 0 4px 15px rgba(0, 170, 255, 0.4);
+            border-color: #00aaff;
+        }
+
+        #selected-celestial-name {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.8em; /* Slightly reduced font size */
+            font-weight: bold;
+            color: #ffcc00;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 8px 15px; /* Reduced padding */
+            border-radius: 10px;
+            border: 1px solid #444;
+        }
+
+        .info-box {
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #444;
+            max-width: 400px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div id="bottom-options-container" class="options-container">
+        <div id="camera-options">
+            <button id="view-toggle-button">Switch to Inside View</button>
+            <button id="follow-button">Follow Planet</button>
+        </div>
+        <div class="follow-modes" id="follow-modes">
+            <button id="face-sun-button" class="active">Face Sun</button>
+            <button id="from-front-button">From Front</button>
+            <button id="from-behind-button">From Behind</button>
+            <button id="free-look-button">Rotational View with Free Look</button>
+        </div>
+    </div>
+    <div class="planet-controls" id="planet-controls"></div>
+    <div id="selected-celestial-name">Solar System Simulation</div>
+
+    <!-- Three.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- TextGeometry, FontLoader, and a font file are required for 3D text -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/loaders/FontLoader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/geometries/TextGeometry.js"></script>
+    <script>
+        window.onload = function() {
+            // --- Basic Scene Setup ---
+            const scene = new THREE.Scene();
+            // Increased the 'far' clipping plane to make sure all planets are visible.
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 50000000);
+            const renderer = new THREE.WebGLRenderer({
+                canvas: document.getElementById('canvas'),
+                antialias: true,
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000);
+            document.body.appendChild(renderer.domElement);
+
+            // Add a light source for a more realistic look
+            const pointLight = new THREE.PointLight(0xffffff, 1, 0, 2);
+            scene.add(pointLight);
+
+            // --- Sun Creation ---
+            const sunRadius = 250; 
+            const sunGeometry = new THREE.IcosahedronGeometry(sunRadius, 5); 
+            const sunMaterial = new THREE.MeshBasicMaterial({
+                color: 0xffcc00, 
+                wireframe: true,
+                transparent: true,
+                opacity: 0.1 // Decreased opacity for a lighter, transparent look
+            });
+            const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+            scene.add(sun);
+
+            // --- Planet Data and Scaling ---
+            const AU_SCALE = 1000;
+            const PLANET_SIZE_SCALE = 20;
+            // Updated rotation periods for more visible rotation
+            // Reduced the slow-down factor from 50 to 45 for slightly faster movement
+            const planetsData = [
+                { name: 'Mercury', au: 0.39, radius: 0.38, color: 0x888888, period: 0.24 * 45, rotationPeriod: 5 * 45, description: 'The smallest and innermost planet in the Solar System, orbiting the Sun every 88 Earth days.' },
+                { name: 'Venus', au: 0.72, radius: 0.95, color: 0xaaaaaa, period: 0.62 * 45, rotationPeriod: 7 * 45, description: 'The second planet from the Sun, named after the Roman goddess of love and beauty. It is the hottest planet in our solar system.' },
+                { name: 'Earth', au: 1.0, radius: 1.0, color: 0x00aaff, period: 1.0 * 45, rotationPeriod: 2 * 45, description: 'The third planet from the Sun and the only astronomical object known to harbor life.' },
+                { name: 'Mars', au: 1.52, radius: 0.53, color: 0xff5500, period: 1.88 * 45, rotationPeriod: 3 * 45, description: 'The fourth planet from the Sun and the second-smallest planet in the Solar System. It is often called the "Red Planet".' },
+                { name: 'Jupiter', au: 5.2, radius: 11.2, color: 0xffaa00, period: 11.86 * 45, rotationPeriod: 1 * 45, description: 'The fifth planet from the Sun and the largest in the Solar System. It is a gas giant with a mass more than two and a half times that of all the other planets in the Solar System combined.' },
+                { name: 'Saturn', au: 9.54, radius: 9.45, color: 0xccccaa, period: 29.46 * 45, rotationPeriod: 1 * 45, description: 'The sixth planet from the Sun and the second-largest in the Solar System, known for its extensive ring system.', hasRings: true, tilt: Math.PI / 6 },
+                { name: 'Uranus', au: 19.2, radius: 4.0, color: 0x00ffff, period: 84.01 * 45, rotationPeriod: 4 * 45, description: 'The seventh planet from the Sun. Its most distinguishing feature is its axial tilt, causing it to orbit the Sun on its side.', hasRings: true, tilt: Math.PI / 2 },
+                { name: 'Neptune', au: 30.1, radius: 3.88, color: 0x0000ff, period: 164.79 * 45, rotationPeriod: 4 * 45, description: 'The eighth and farthest-known planet from the Sun. It is the fourth-largest planet by diameter and the third-most massive planet.' },
+                { name: 'Pluto', au: 39.5, radius: 0.18, color: 0x996633, period: 248.0 * 45, rotationPeriod: 8 * 45, description: 'A dwarf planet in the Kuiper Belt, a ring of bodies beyond Neptune. It was the ninth planet from the Sun until 2006.'}
+            ];
+
+            // --- Moon Data ---
+            const moonsData = [
+                // Reduced the slow-down factor from 50 to 45 for slightly faster movement
+                // Earth's Moon
+                { name: 'Moon', parent: 'Earth', radius: 0.27, orbitRadius: 2.5, period: 27.3 * 45, color: 0xcccccc },
+                // Mars' Moons
+                { name: 'Phobos', parent: 'Mars', radius: 0.001, orbitRadius: 0.1, period: 0.3 * 45, color: 0x996633 },
+                { name: 'Deimos', parent: 'Mars', radius: 0.001, orbitRadius: 0.15, period: 1.3 * 45, color: 0x996633 },
+                // Jupiter's Moons
+                { name: 'Io', parent: 'Jupiter', radius: 0.28, orbitRadius: 10, period: 1.8 * 45, color: 0xffa500 },
+                { name: 'Europa', parent: 'Jupiter', radius: 0.25, orbitRadius: 15, period: 3.6 * 45, color: 0xaaaaaa },
+                { name: 'Ganymede', parent: 'Jupiter', radius: 0.41, orbitRadius: 25, period: 7.2 * 45, color: 0xeeeeee },
+                { name: 'Callisto', parent: 'Jupiter', radius: 0.38, orbitRadius: 35, period: 16.7 * 45, color: 0xaaaa99 },
+                // Saturn's Moons
+                { name: 'Titan', parent: 'Saturn', radius: 0.4, orbitRadius: 20, period: 16 * 45, color: 0xdddd99 },
+                { name: 'Rhea', parent: 'Saturn', radius: 0.1, orbitRadius: 10, period: 4.5 * 45, color: 0xcccccc },
+                { name: 'Iapetus', parent: 'Saturn', radius: 0.1, orbitRadius: 30, period: 79 * 45, color: 0x999999 },
+                // Uranus' Moons
+                { name: 'Titania', parent: 'Uranus', radius: 0.1, orbitRadius: 5, period: 8.7 * 45, color: 0x00aaff },
+                { name: 'Oberon', parent: 'Uranus', radius: 0.09, orbitRadius: 8, period: 13.5 * 45, color: 0x9999cc },
+                // Neptune's Moon
+                { name: 'Triton', parent: 'Neptune', radius: 0.2, orbitRadius: 5, period: 5.9 * 45, color: 0x0099ff },
+                // Pluto's Moon (Charon)
+                { name: 'Charon', parent: 'Pluto', radius: 0.1, orbitRadius: 3, period: 6.4 * 45, color: 0x996633 }
+            ];
+            
+            const planets = [];
+            const moons = [];
+            const planetNames = []; // Array to store 3D text meshes for each planet
+
+            // --- 3D Text Creation ("SUN") ---
+            const loader = new THREE.FontLoader();
+            // Corrected font URL to a working raw GitHub link
+            loader.load('https://raw.githubusercontent.com/mrdoob/three.js/r128/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+                // Sun's Name (centered)
+                const sunTextGeometry = new THREE.TextGeometry('SUN', {
+                    font: font,
+                    size: 9,
+                    height: 1,
+                    curveSegments: 12,
+                    bevelEnabled: false,
+                });
+                sunTextGeometry.center();
+                const sunTextMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xffcc00, 
+                    wireframe: true,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const sunTextMesh = new THREE.Mesh(sunTextGeometry, sunTextMaterial);
+                scene.add(sunTextMesh);
+
+                // Planet names (positioned above the planets)
+                planetsData.forEach((planetData, index) => {
+                    const planetTextGeometry = new THREE.TextGeometry(planetData.name.toUpperCase(), {
+                        font: font,
+                        size: 9,
+                        height: 1,
+                        curveSegments: 12,
+                        bevelEnabled: false,
+                    });
+                    planetTextGeometry.center();
+                    const planetTextMaterial = new THREE.MeshBasicMaterial({
+                        color: planetData.color,
+                        wireframe: true,
+                        transparent: true,
+                        opacity: 0.8
+                    });
+                    const planetTextMesh = new THREE.Mesh(planetTextGeometry, planetTextMaterial);
+                    
+                    // Initial position, will be updated in animation loop
+                    const planetRadius = planetData.radius * PLANET_SIZE_SCALE;
+                    planetTextMesh.position.y = planetRadius + 5; 
+                    
+                    scene.add(planetTextMesh);
+                    planetNames.push(planetTextMesh);
+                });
+            });
+            
+            // --- Create Rings using RingGeometry for a solid, circular look ---
+            function createRings(innerRadius, outerRadius, color) {
+                const ringGeometry = new THREE.RingGeometry(innerRadius, outerRadius, 64);
+                const ringMaterial = new THREE.MeshBasicMaterial({
+                    color: color,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.6,
+                });
+                const ringMesh = new THREE.Mesh(ringGeometry, ringMaterial);
+                ringMesh.rotation.x = Math.PI / 2; // Rotate to lie flat in the XZ plane
+                return ringMesh;
+            }
+
+            // --- Create Orbits and Planets ---
+            function createOrbitAndPlanet(planetData) {
+                // Create Orbit
+                const orbitRadius = planetData.au * AU_SCALE;
+                const points = [];
+                const segments = 128;
+                for (let i = 0; i <= segments; i++) {
+                    const theta = (i / segments) * Math.PI * 2;
+                    points.push(new THREE.Vector3(
+                        orbitRadius * Math.cos(theta),
+                        0,
+                        orbitRadius * Math.sin(theta)
+                    ));
+                }
+                const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points);
+                const orbitMaterial = new THREE.LineBasicMaterial({ color: planetData.color });
+                const orbit = new THREE.Line(orbitGeometry, orbitMaterial);
+                scene.add(orbit);
+
+                // Create Planet
+                const planetRadius = planetData.radius * PLANET_SIZE_SCALE;
+                const planetGeometry = new THREE.SphereGeometry(planetRadius, 32, 32);
+                const planetMaterial = new THREE.MeshBasicMaterial({ 
+                    color: planetData.color,
+                    wireframe: true,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const planet = new THREE.Mesh(planetGeometry, planetMaterial);
+                scene.add(planet);
+
+                let rings = null;
+                if (planetData.hasRings) {
+                    rings = createRings(planetRadius * 1.5, planetRadius * 2.5, planetData.color);
+                    scene.add(rings);
+                }
+
+                return { 
+                    mesh: planet, 
+                    orbitRadius, 
+                    period: planetData.period, 
+                    rotationPeriod: planetData.rotationPeriod,
+                    details: planetData,
+                    rings: rings
+                };
+            }
+
+            planetsData.forEach(data => {
+                planets.push(createOrbitAndPlanet(data));
+            });
+
+            // --- Create Moons ---
+            function createMoons(moonsData) {
+                const moonObjects = [];
+                moonsData.forEach(moonData => {
+                    const parentPlanet = planets.find(p => p.details.name === moonData.parent);
+                    if (parentPlanet) {
+                        const moonRadius = moonData.radius * PLANET_SIZE_SCALE;
+                        const moonGeometry = new THREE.SphereGeometry(moonRadius, 32, 32);
+                        const moonMaterial = new THREE.MeshBasicMaterial({ 
+                            color: moonData.color,
+                            wireframe: true,
+                            transparent: true,
+                            opacity: 0.8
+                        });
+                        const moonMesh = new THREE.Mesh(moonGeometry, moonMaterial);
+                        scene.add(moonMesh);
+
+                        // Create moon orbit line
+                        const orbitRadius = moonData.orbitRadius * PLANET_SIZE_SCALE;
+                        const points = [];
+                        const segments = 64;
+                        for (let i = 0; i <= segments; i++) {
+                            const theta = (i / segments) * Math.PI * 2;
+                            points.push(new THREE.Vector3(
+                                orbitRadius * Math.cos(theta),
+                                0,
+                                orbitRadius * Math.sin(theta)
+                            ));
+                        }
+                        const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points);
+                        const orbitMaterial = new THREE.LineBasicMaterial({ color: moonData.color, transparent: true, opacity: 0.3 });
+                        const orbit = new THREE.Line(orbitGeometry, orbitMaterial);
+                        scene.add(orbit);
+
+                        moonObjects.push({ 
+                            mesh: moonMesh, 
+                            orbitRadius, 
+                            period: moonData.period, 
+                            parentMesh: parentPlanet.mesh,
+                            orbitMesh: orbit
+                        });
+                    }
+                });
+                return moonObjects;
+            }
+
+            const createdMoons = createMoons(moonsData);
+
+            // --- Asteroid Belt Creation ---
+            // Reduced the slow-down factor from 50 to 45 for slightly faster movement
+            function createAsteroidBelt(minRadius, maxRadius, count) {
+                const asteroidGeometry = new THREE.BufferGeometry();
+                const asteroidVertices = [];
+                const color = 0x808080;
+                const material = new THREE.PointsMaterial({ color: color, size: 0.2 });
+
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = THREE.MathUtils.randFloat(minRadius, maxRadius);
+                    const yOffset = THREE.MathUtils.randFloatSpread(5);
+
+                    const x = radius * Math.cos(angle);
+                    const z = radius * Math.sin(angle);
+                    
+                    asteroidVertices.push(x, yOffset, z);
+                }
+
+                asteroidGeometry.setAttribute('position', new THREE.Float32BufferAttribute(asteroidVertices, 3));
+                const asteroids = new THREE.Points(asteroidGeometry, material);
+                scene.add(asteroids);
+                return { mesh: asteroids, period: 5.6 * 45 };
+            }
+
+            const asteroidBelt = createAsteroidBelt(1.52 * AU_SCALE + 20, 5.2 * AU_SCALE - 20, 5000);
+            
+            // --- Star Field Creation ---
+            const starGeometry = new THREE.BufferGeometry();
+            const starVertices = [];
+            for (let i = 0; i < 5000; i++) {
+                const x = THREE.MathUtils.randFloatSpread(15000);
+                const y = THREE.MathUtils.randFloatSpread(15000);
+                const z = THREE.MathUtils.randFloatSpread(15000);
+                starVertices.push(x, y, z);
+            }
+            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+            const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 });
+            const stars = new THREE.Points(starGeometry, starMaterial);
+            scene.add(stars);
+
+            // --- Camera Controls for orbiting & looking around ---
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+            // Initialize with random angles for a dynamic starting view
+            let horizontalAngle = Math.random() * Math.PI * 2;
+            let verticalAngle = (Math.random() - 0.5) * Math.PI;
+            let cameraDistance = 10000;
+            let focusedObject = sun;
+            let isInside = false;
+            let isFollowing = false;
+            let followingMode = 'face-sun'; // Initial follow mode
+            let currentPlanetIndex = null;
+            let cameraEuler = new THREE.Euler(0, 0, 0, 'YXZ');
+            let rotationSensitivity = 0.005;
+
+            // --- Smooth Transition Variables ---
+            let transitionState = {
+                isTransitioning: false,
+                startPosition: new THREE.Vector3(),
+                midPosition: new THREE.Vector3(),
+                endPosition: new THREE.Vector3(),
+                startLookAt: new THREE.Vector3(),
+                endLookAt: new THREE.Vector3(),
+                startTime: 0,
+                duration: 1500, // milliseconds
+            };
+
+            function updateCameraPosition() {
+                // If a transition is in progress, interpolate the camera's position
+                if (transitionState.isTransitioning) {
+                    const elapsedTime = Date.now() - transitionState.startTime;
+                    const t = Math.min(1, elapsedTime / transitionState.duration); // Normalized progress (0 to 1)
+
+                    const smoothT = t * t * (3 - 2 * t);
+                    
+                    if (t < 0.5) { // First phase: Zoom out
+                        const t1 = t * 2;
+                        camera.position.lerpVectors(transitionState.startPosition, transitionState.midPosition, t1);
+                    } else { // Second phase: Zoom in
+                        const t2 = (t - 0.5) * 2;
+                        camera.position.lerpVectors(transitionState.midPosition, transitionState.endPosition, t2);
+                    }
+                    
+                    // Always lerp the look-at target
+                    const currentLookAt = new THREE.Vector3().lerpVectors(transitionState.startLookAt, transitionState.endLookAt, smoothT);
+                    camera.lookAt(currentLookAt);
+
+                    // If transition is complete, snap to the final position and disable transition
+                    if (t >= 1) {
+                        transitionState.isTransitioning = false;
+                        cameraDistance = camera.position.distanceTo(focusedObject.position);
+                    }
+                } else {
+                    const targetPosition = focusedObject.position;
+                    if (isInside) {
+                        camera.position.copy(targetPosition);
+                        camera.quaternion.setFromEuler(cameraEuler);
+                        sun.material.side = THREE.BackSide;
+                        planets.forEach(p => p.mesh.material.side = THREE.BackSide);
+                    } else if (isFollowing && currentPlanetIndex !== null && followingMode !== 'free-look') {
+                        const planet = planets[currentPlanetIndex];
+                        const planetPosition = planet.mesh.position;
+                        
+                        const vectorFromSun = planetPosition.clone().sub(sun.position).normalize();
+                        const forwardVector = new THREE.Vector3(-vectorFromSun.z, 0, vectorFromSun.x).normalize();
+                        
+                        let cameraOffset;
+                        let lookAtTarget = planetPosition;
+
+                        switch (followingMode) {
+                            case 'face-sun':
+                                cameraOffset = forwardVector.clone().multiplyScalar(-cameraDistance);
+                                cameraOffset.y += cameraDistance * 0.5;
+                                lookAtTarget = sun.position;
+                                break;
+                            case 'from-front':
+                                cameraOffset = forwardVector.clone().multiplyScalar(-cameraDistance);
+                                cameraOffset.y += cameraDistance * 0.5;
+                                lookAtTarget = planetPosition;
+                                break;
+                            case 'from-behind':
+                                cameraOffset = forwardVector.clone().multiplyScalar(cameraDistance);
+                                cameraOffset.y += cameraDistance * 0.5;
+                                lookAtTarget = planetPosition;
+                                break;
+                        }
+                        
+                        camera.position.copy(planetPosition).add(cameraOffset);
+                        camera.lookAt(lookAtTarget);
+
+                        sun.material.side = THREE.FrontSide;
+                        planets.forEach(p => p.mesh.material.side = THREE.FrontSide);
+                    } else {
+                        const x = cameraDistance * Math.sin(horizontalAngle) * Math.cos(verticalAngle);
+                        const y = cameraDistance * Math.sin(verticalAngle);
+                        const z = cameraDistance * Math.cos(horizontalAngle) * Math.cos(verticalAngle);
+                        camera.position.set(x, y, z).add(targetPosition);
+                        camera.lookAt(targetPosition);
+                        sun.material.side = THREE.FrontSide;
+                        planets.forEach(p => p.mesh.material.side = THREE.FrontSide);
+                    }
+                }
+                camera.updateProjectionMatrix();
+            }
+
+            document.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMousePosition.x = e.clientX;
+                previousMousePosition.y = e.clientY;
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging || transitionState.isTransitioning) return;
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+
+                if (isInside) {
+                    cameraEuler.y += deltaX * rotationSensitivity;
+                    cameraEuler.x += deltaY * rotationSensitivity;
+                    cameraEuler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cameraEuler.x));
+                } else {
+                    // Orbiting view: controls orbit angle
+                    horizontalAngle += deltaX * rotationSensitivity;
+                    verticalAngle += deltaY * rotationSensitivity;
+                    verticalAngle = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, verticalAngle));
+                }
+
+                previousMousePosition.x = e.clientX;
+                previousMousePosition.y = e.clientY;
+            });
+            
+            document.addEventListener('wheel', (e) => {
+                if (isInside) {
+                    const moveSpeed = e.deltaY * 0.01;
+                    camera.translateZ(moveSpeed);
+                } else {
+                    const zoomFactor = 1.05;
+                    if (e.deltaY > 0) {
+                        cameraDistance *= zoomFactor;
+                    } else {
+                        cameraDistance /= zoomFactor;
+                    }
+                    cameraDistance = Math.min(cameraDistance, 5000000);
+                    cameraDistance = Math.max(cameraDistance, 10);
+                }
+            });
+
+            // --- UI Elements and Event Listeners ---
+            const controlsContainer = document.getElementById('planet-controls');
+            const bottomOptionsContainer = document.getElementById('bottom-options-container');
+            const selectedCelestialName = document.getElementById('selected-celestial-name');
+            const cameraOptionsContainer = document.getElementById('camera-options');
+            const viewToggleButton = document.getElementById('view-toggle-button');
+            const followButton = document.getElementById('follow-button');
+            const followModesContainer = document.getElementById('follow-modes');
+            const faceSunButton = document.getElementById('face-sun-button');
+            const fromFrontButton = document.getElementById('from-front-button');
+            const fromBehindButton = document.getElementById('from-behind-button');
+            const freeLookButton = document.getElementById('free-look-button');
+            
+            function updateFollowModeButtons(activeButton) {
+                document.querySelectorAll('.follow-modes button').forEach(btn => btn.classList.remove('active'));
+                activeButton.classList.add('active');
+            }
+
+            faceSunButton.addEventListener('click', () => {
+                followingMode = 'face-sun';
+                updateFollowModeButtons(faceSunButton);
+            });
+            fromFrontButton.addEventListener('click', () => {
+                followingMode = 'from-front';
+                updateFollowModeButtons(fromFrontButton);
+            });
+            fromBehindButton.addEventListener('click', () => {
+                followingMode = 'from-behind';
+                updateFollowModeButtons(fromBehindButton);
+            });
+            freeLookButton.addEventListener('click', () => {
+                followingMode = 'free-look';
+                updateFollowModeButtons(freeLookButton);
+                // When entering free-look, set the initial camera angles to match the current view
+                const direction = new THREE.Vector3().subVectors(camera.position, focusedObject.position).normalize();
+                horizontalAngle = Math.atan2(direction.z, direction.x);
+                verticalAngle = Math.asin(direction.y);
+            });
+
+            // Function to update the celestial name display
+            function updateSelectedName(name) {
+                selectedCelestialName.textContent = name;
+            }
+
+            function startTransition(newTarget, newDistance) {
+                transitionState.isTransitioning = true;
+                
+                // Set the start and end look-at targets
+                transitionState.startLookAt.copy(focusedObject.position);
+                transitionState.endLookAt.copy(newTarget.position);
+
+                // Set start position
+                transitionState.startPosition.copy(camera.position);
+                
+                // Calculate mid position for "zoom out" effect
+                const currentTargetPos = focusedObject.position;
+                const newTargetPos = newTarget.position;
+                const midPoint = new THREE.Vector3().lerpVectors(currentTargetPos, newTargetPos, 0.5);
+                const zoomOutFactor = 2;
+                transitionState.midPosition.copy(midPoint).add(new THREE.Vector3(0, newDistance * zoomOutFactor, newDistance * zoomOutFactor));
+
+                // Calculate end position relative to the new target
+                const endPos = newTargetPos.clone().add(new THREE.Vector3(newDistance * Math.sin(horizontalAngle) * Math.cos(verticalAngle),
+                    newDistance * Math.sin(verticalAngle),
+                    newDistance * Math.cos(horizontalAngle) * Math.cos(verticalAngle)));
+                transitionState.endPosition.copy(endPos);
+
+                transitionState.startTime = Date.now();
+                focusedObject = newTarget;
+            }
+
+            // Add Sun button
+            const sunButton = document.createElement('button');
+            sunButton.textContent = 'Sun';
+            sunButton.className = 'planet-button active';
+            sunButton.addEventListener('click', () => {
+                startTransition(sun, 2000);
+                updateButtons(sunButton);
+                isInside = false;
+                isFollowing = false;
+                currentPlanetIndex = null;
+                bottomOptionsContainer.classList.remove('visible'); // Hide options for Sun
+                updateSelectedName('Sun');
+            });
+            controlsContainer.appendChild(sunButton);
+
+            // Add planet buttons
+            planetsData.forEach((planetData, index) => {
+                const planetButton = document.createElement('button');
+                planetButton.textContent = planetData.name;
+                planetButton.className = 'planet-button';
+                planetButton.addEventListener('click', () => {
+                    startTransition(planets[index].mesh, 50);
+                    currentPlanetIndex = index;
+                    updateButtons(planetButton);
+                    isInside = false;
+                    isFollowing = false;
+                    bottomOptionsContainer.classList.add('visible'); // Show options for planets
+                    viewToggleButton.style.display = 'block';
+                    followButton.style.display = 'block';
+                    followButton.textContent = 'Follow Planet';
+                    followModesContainer.style.display = 'none';
+                    updateSelectedName(planetData.name);
+                });
+                controlsContainer.appendChild(planetButton);
+            });
+
+            // Add Asteroid Belt button
+            const asteroidButton = document.createElement('button');
+            asteroidButton.textContent = 'Asteroid Belt';
+            asteroidButton.className = 'planet-button';
+            asteroidButton.addEventListener('click', () => {
+                startTransition(asteroidBelt.mesh, 200);
+                updateButtons(asteroidButton);
+                isInside = false;
+                isFollowing = false;
+                currentPlanetIndex = null;
+                bottomOptionsContainer.classList.remove('visible'); // Hide options for non-planets
+                updateSelectedName('Asteroid Belt');
+            });
+            controlsContainer.appendChild(asteroidButton);
+
+
+            // View toggle button functionality
+            viewToggleButton.addEventListener('click', () => {
+                isInside = !isInside;
+                if (isInside) {
+                    viewToggleButton.textContent = 'Switch to Outside View';
+                    followButton.style.display = 'none';
+                    followModesContainer.style.display = 'none';
+                    // Reset camera Euler angles when entering inside view
+                    cameraEuler.set(0, 0, 0, 'YXZ');
+                } else {
+                    viewToggleButton.textContent = 'Switch to Inside View';
+                    followButton.style.display = 'block';
+                }
+                isFollowing = false;
+            });
+
+            // Follow button functionality
+            followButton.addEventListener('click', () => {
+                isFollowing = !isFollowing;
+                if (isFollowing) {
+                    followButton.textContent = 'Stop Following';
+                    viewToggleButton.style.display = 'none';
+                    followModesContainer.style.display = 'flex';
+                    followingMode = 'face-sun'; // Reset to default mode on follow
+                    updateFollowModeButtons(faceSunButton);
+                } else {
+                    followButton.textContent = 'Follow Planet';
+                    viewToggleButton.style.display = 'block';
+                    followModesContainer.style.display = 'none';
+                }
+            });
+
+            function updateButtons(activeButton) {
+                document.querySelectorAll('.planet-button').forEach(btn => btn.classList.remove('active'));
+                activeButton.classList.add('active');
+            }
+            
+            // --- Animation Loop ---
+            const clock = new THREE.Clock();
+            const animate = function () {
+                requestAnimationFrame(animate);
+                const elapsedTime = clock.getElapsedTime();
+
+                // Update planet positions and axial rotations
+                planets.forEach((planet, index) => {
+                    // Orbital position
+                    const angle = elapsedTime * (2 * Math.PI / planet.period);
+                    planet.mesh.position.x = planet.orbitRadius * Math.sin(angle);
+                    planet.mesh.position.z = planet.orbitRadius * Math.cos(angle);
+
+                    // Axial rotation
+                    const rotationAngle = elapsedTime * (2 * Math.PI / planet.rotationPeriod);
+                    planet.mesh.rotation.y = rotationAngle;
+
+                    // Apply axial tilt if specified
+                    if (planet.details.tilt) {
+                        planet.mesh.rotation.z = planet.details.tilt;
+                        if (planet.rings) {
+                            planet.rings.rotation.y = rotationAngle;
+                        }
+                    }
+
+                    // Update rings position to follow the planet
+                    if (planet.rings) {
+                        planet.rings.position.copy(planet.mesh.position);
+                    }
+
+                    // Update planet name position and rotation
+                    if (planetNames[index]) {
+                        planetNames[index].position.copy(planet.mesh.position);
+                        planetNames[index].position.y += planet.mesh.geometry.parameters.radius + 5;
+                        planetNames[index].lookAt(camera.position);
+                    }
+                });
+
+                // Update moon positions relative to their parent planets
+                createdMoons.forEach(moon => {
+                    const parentPosition = moon.parentMesh.position;
+                    const angle = elapsedTime * (2 * Math.PI / moon.period);
+                    moon.mesh.position.x = parentPosition.x + moon.orbitRadius * Math.sin(angle);
+                    moon.mesh.position.z = parentPosition.z + moon.orbitRadius * Math.cos(angle);
+                    
+                    // Update the moon's orbit line position to follow the parent planet
+                    const orbitPoints = moon.orbitMesh.geometry.attributes.position.array;
+                    const segments = 64;
+                    for (let i = 0; i <= segments; i++) {
+                        const theta = (i / segments) * Math.PI * 2;
+                        orbitPoints[i * 3 + 0] = parentPosition.x + moon.orbitRadius * Math.cos(theta);
+                        orbitPoints[i * 3 + 1] = parentPosition.y;
+                        orbitPoints[i * 3 + 2] = parentPosition.z + moon.orbitRadius * Math.sin(theta);
+                    }
+                    moon.orbitMesh.geometry.attributes.position.needsUpdate = true;
+                });
+                
+                // Make the asteroid belt appear to rotate around the sun
+                if (asteroidBelt.mesh) {
+                    asteroidBelt.mesh.rotation.y = elapsedTime * (2 * Math.PI / asteroidBelt.period);
+                }
+
+
+                updateCameraPosition();
+                renderer.render(scene, camera);
+            };
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            // Start the animation loop
+            animate();
+        };
+    </script>
+</body>
+</html>
